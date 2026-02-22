@@ -43,7 +43,7 @@
             }
         };
 
-        // Icon Components (same as before, keeping them compact)
+        // Icon Components
         const Icon = ({ children, className = "" }) => <svg className={className} viewBox="0 0 24 24">{children}</svg>;
         const Home = ({ className }) => <Icon className={className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></Icon>;
         const Building2 = ({ className }) => <Icon className={className}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></Icon>;
@@ -53,7 +53,6 @@
         const UserCheck = ({ className }) => <Icon className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></Icon>;
         const FileCheck = ({ className }) => <Icon className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></Icon>;
         const Shield = ({ className }) => <Icon className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Icon>;
-        const Calculator = ({ className }) => <Icon className={className}><rect x="4" y="2" width="16" height="20" rx="2"/></Icon>;
         const FileSignature = ({ className }) => <Icon className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></Icon>;
         const Target = ({ className }) => <Icon className={className}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></Icon>;
         const Award = ({ className }) => <Icon className={className}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></Icon>;
@@ -63,14 +62,11 @@
         const Trash2 = ({ className }) => <Icon className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></Icon>;
         const Save = ({ className }) => <Icon className={className}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></Icon>;
         const X = ({ className }) => <Icon className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
-        const Download = ({ className }) => <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></Icon>;
 
         const ImperioCommandCenter = () => {
             const [activeModule, setActiveModule] = useState('dashboard');
             const [clients, setClients] = useState([]);
             const [bids, setBids] = useState([]);
-            const [quotes, setQuotes] = useState([]);
-            const [purchaseOrders, setPurchaseOrders] = useState([]);
             const [loading, setLoading] = useState(true);
             
             const [showClientForm, setShowClientForm] = useState(false);
@@ -85,16 +81,12 @@
             const loadData = async () => {
                 setLoading(true);
                 try {
-                    const [clientsData, bidsData, quotesData, posData] = await Promise.all([
+                    const [clientsData, bidsData] = await Promise.all([
                         API.get('get-clients'),
-                        API.get('get-bids'),
-                        API.get('get-quotes'),
-                        API.get('get-pos')
+                        API.get('get-bids')
                     ]);
                     setClients(clientsData);
                     setBids(bidsData);
-                    setQuotes(quotesData);
-                    setPurchaseOrders(posData);
                 } catch (error) {
                     console.error('Failed to load data:', error);
                 } finally {
@@ -167,7 +159,14 @@
                 { id: 'clients', icon: Building2, label: 'Clients' },
                 { id: 'bids', icon: Target, label: 'Bid Tracker' },
                 { id: 'capstatement', icon: Award, label: 'Cap Statement' },
-                { id: 'supply', icon: Package, label: 'Supply & PO' }
+                { id: 'supply', icon: Package, label: 'Supply & PO' },
+                { id: 'requisitions', icon: FileText, label: 'Requisitions' },
+                { id: 'candidates', icon: Users, label: 'Candidates' },
+                { id: 'revenue', icon: DollarSign, label: 'Revenue' },
+                { id: 'eor', icon: UserCheck, label: 'EOR Workforce' },
+                { id: 'invoicing', icon: FileCheck, label: 'Invoicing' },
+                { id: 'compliance', icon: Shield, label: 'Compliance' },
+                { id: 'sow', icon: FileSignature, label: 'SOW Generator' }
             ];
 
             if (loading) {
@@ -233,13 +232,13 @@
                                         </div>
                                         <div className="stat-card purple">
                                             <Package className="icon-lg" style={{marginBottom: '1rem'}} />
-                                            <p className="stat-label">Open POs</p>
-                                            <p className="stat-value">{purchaseOrders.filter(po => po.status !== 'Paid').length}</p>
+                                            <p className="stat-label">Pipeline Value</p>
+                                            <p className="stat-value">${bids.filter(b => !['Won', 'Lost', 'No Bid'].includes(b.status)).reduce((sum, b) => sum + (parseFloat(b.estimatedValue) || 0), 0).toLocaleString()}</p>
                                         </div>
                                         <div className="stat-card yellow">
                                             <DollarSign className="icon-lg" style={{marginBottom: '1rem'}} />
-                                            <p className="stat-label">Quotes Sent</p>
-                                            <p className="stat-value">{quotes.filter(q => q.status === 'Sent').length}</p>
+                                            <p className="stat-label">Total Clients</p>
+                                            <p className="stat-value">{clients.length}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -340,13 +339,18 @@
                                 </div>
                             )}
 
-                            {/* Cap Statement & Supply Modules - Placeholder */}
-                            {['capstatement', 'supply'].includes(activeModule) && (
+                            {/* Placeholder Modules */}
+                            {['capstatement', 'supply', 'requisitions', 'candidates', 'revenue', 'eor', 'invoicing', 'compliance', 'sow'].includes(activeModule) && (
                                 <div className="card" style={{textAlign: 'center', padding: '3rem'}}>
-                                    <h2 className="page-title serif-font">
-                                        {activeModule === 'capstatement' ? 'Capability Statement' : 'Supply & PO Management'}
+                                    <h2 className="page-title serif-font" style={{marginBottom: '1rem'}}>
+                                        {activeModule === 'capstatement' ? 'Capability Statement' :
+                                         activeModule === 'supply' ? 'Supply & PO Management' :
+                                         activeModule === 'eor' ? 'EOR Workforce' :
+                                         activeModule === 'sow' ? 'SOW Generator' :
+                                         activeModule.charAt(0).toUpperCase() + activeModule.slice(1)}
                                     </h2>
-                                    <p style={{color: 'var(--text-secondary)'}}>Module coming soon</p>
+                                    <p style={{color: 'var(--text-secondary)', marginBottom: '1.5rem'}}>This module will be built next.</p>
+                                    <div className="badge yellow" style={{padding: '0.75rem 1.5rem', fontSize: '1rem'}}>Coming Soon</div>
                                 </div>
                             )}
                         </main>
